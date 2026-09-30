@@ -39,9 +39,44 @@ class ButlerIdentity:
 
 
 @dataclass(frozen=True, slots=True)
+class SpeakerIdentity:
+    """Safe session identity asserted by the client.
+
+    This is contextual identity for personalization and conversation routing.
+    It is not authentication and contains no biometric material.
+    """
+
+    speaker_id: str
+    persistent: bool
+    display_name: str | None = None
+    call_me: str | None = None
+    form_of_address: str | None = None
+    language: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "speaker_id", _required(self.speaker_id, "speaker_id"))
+
+        for field_name in (
+            "display_name",
+            "call_me",
+            "form_of_address",
+            "language",
+        ):
+            value = getattr(self, field_name)
+            if value is not None:
+                clean = str(value).strip()
+                object.__setattr__(
+                    self,
+                    field_name,
+                    clean or None,
+                )
+
+
+@dataclass(frozen=True, slots=True)
 class TextRequest:
     request_id: str
     message: str
+    speaker: SpeakerIdentity | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "request_id", _required(self.request_id, "request_id"))
