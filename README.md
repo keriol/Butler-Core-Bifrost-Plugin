@@ -1,5 +1,111 @@
-# Butler Core Bifröst Plugin
+# Butler Core Bifröst Plugin 🌈
 
-Private proving repository for the replaceable client-to-Butler bridge between Midgard and Asgard.
+**A replaceable bridge between Butler clients and Butler runtimes.**
 
-Development starts from GitHub issue BIF-001.
+Bifröst is a transport-oriented plugin for the Butler ecosystem. It defines the
+shared protocol surface used to connect client-side interfaces to runtime-side
+Butler boundaries without coupling those clients to a concrete Butler
+implementation.
+
+The project is currently in private incubation and is being developed with a
+public release in mind. Public/private boundaries are therefore enforced from
+the first development commit.
+
+## Why Bifröst?
+
+A Butler client should not need to know how a runtime is implemented.
+
+```text
+Client / Interphone
+       |
+    Midgard
+       |
+    Bifröst
+       |
+    Asgard
+       |
+ active Butler
+```
+
+Bifröst is the bridge between the two sides. It is deliberately **not** the
+Butler itself, not a domain runtime, and not an application plugin registry.
+
+## Current scope
+
+The first development line establishes:
+
+- protocol versioning;
+- request correlation;
+- client HELLO messages;
+- safe Butler identity responses;
+- text request/response envelopes;
+- stable error envelopes;
+- a LAN discovery convention based on DNS-SD / mDNS.
+
+No network server or Android client is shipped yet.
+
+## LAN discovery
+
+Bifröst defines the DNS-SD service type:
+
+```text
+_butler-bifrost._tcp
+```
+
+A compatible service may therefore appear on the local multicast domain as:
+
+```text
+_butler-bifrost._tcp.local.
+```
+
+Discovery exists only to locate compatible endpoints. It is **not**
+authorization.
+
+```text
+DISCOVER -> IDENTIFY -> PAIR/AUTH -> TRUSTED SESSION
+```
+
+Discovery advertisements must not expose household capabilities, private entity
+identifiers, provider payloads, credentials, or deployment topology.
+
+Manual endpoint configuration remains a supported fallback.
+
+See [Architecture](docs/architecture.md) for the ownership boundary.
+
+## Development
+
+Python 3.10 or newer is required.
+
+```bash
+git clone https://github.com/keriol/Butler-Core-Bifrost-Plugin.git
+cd Butler-Core-Bifrost-Plugin
+
+python -m venv .venv
+source .venv/bin/activate
+
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+
+python -m pytest
+python -m build
+```
+
+## Project status
+
+Current development version: **0.0.1.dev0**.
+
+Bifröst is pre-release and under active contract proving. Public availability
+will follow only after the protocol, security boundary, discovery behavior and
+cross-runtime compatibility have been validated.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Active work is tracked in GitHub Issues.
+
+## Security
+
+See [SECURITY.md](SECURITY.md).
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
