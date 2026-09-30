@@ -20,6 +20,31 @@ concrete Butler
 
 Bifröst does not address Alfred, Wilfred or another Butler directly.
 
+## HTTP ingress ownership
+
+Bifröst owns the HTTP payload contract through a framework-neutral adapter.
+
+```text
+HTTP JSON
+   |
+HttpIngressAdapter
+   |
+BifrostIngress
+   |
+Midgard-facing port
+```
+
+The concrete Butler host owns web-framework mounting, network binding and authentication policy. The reusable Bifröst package therefore does not depend on FastAPI, Flask or Starlette.
+
+The adapter validates and serializes:
+
+- request correlation;
+- target Butler name;
+- safe speaker metadata;
+- source Butler identity;
+- structured errors;
+- neutral client-notification descriptors.
+
 ## Ownership
 
 Bifröst owns:
@@ -46,38 +71,6 @@ Bifröst does not own:
 - notification significance;
 - household configuration.
 
-## Butler identity
-
-The client may request:
-
-```text
-target_butler_name
-```
-
-Bifröst transports that metadata to Midgard.
-
-Midgard owns cross-Butler routing by asking Butler-owned Asgard entities which Butler identity they represent.
-
-A successful response carries:
-
-```text
-source_butler_name
-```
-
-That identity originates from the selected Butler's Asgard. Bifröst only propagates it.
-
-## Synchronous unavailable notification
-
-When Midgard cannot reach the requested Butler because the Butler is missing, offline, unavailable, misconfigured or non-responsive, the structured error may include:
-
-```text
-kind = butler_unavailable
-presentation = system_neutral
-documentation_url = optional
-```
-
-Bifröst transports this descriptor to the client. It does not localize or reinterpret it.
-
 ## Historical direct-Asgard transport
 
 The current `HttpTransport` is lower-layer proving evidence created before Midgard existed.
@@ -86,18 +79,4 @@ The current `HttpTransport` is lower-layer proving evidence created before Midga
 Bifröst -> Asgard
 ```
 
-is therefore historical/proving topology only, not the final client architecture.
-
-It must not be used as justification for new direct client-to-Asgard coupling.
-
-## Discovery boundary
-
-DNS-SD / mDNS discovery advertises only endpoint compatibility metadata.
-
-Discovery must never imply authorization.
-
-## Multi-user identity boundary
-
-Bifröst may transport client-asserted speaker/session identity so the Butler can preserve conversational context.
-
-Speaker identity is not authentication and must not authorize privileged or dangerous operations by itself.
+is historical/proving topology only, not the final client architecture.

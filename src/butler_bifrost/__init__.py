@@ -1,6 +1,7 @@
 """Public Bifröst protocol contracts."""
 
 from .discovery import DNS_SD_FQDN, DNS_SD_SERVICE_TYPE, discovery_txt_record
+from .http_ingress import HttpIngressAdapter, HttpIngressResult
 from .ingress import BifrostIngress
 from .ports import MidgardIngressPort
 from .protocol import (
@@ -27,6 +28,8 @@ __all__ = [
     "ClientNotificationPresentation",
     "ErrorEnvelope",
     "Hello",
+    "HttpIngressAdapter",
+    "HttpIngressResult",
     "MidgardIngressPort",
     "SpeakerIdentity",
     "TextRequest",
