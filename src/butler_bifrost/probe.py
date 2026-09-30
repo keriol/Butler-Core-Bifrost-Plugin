@@ -56,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         ) as transport:
             result = transport.send_text(request)
-    except Exception as exc:
+    except Exception:
         print(
             json.dumps(
                 {
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
                     "request_id": request.request_id,
                     "error": {
                         "code": "probe_failure",
-                        "message": str(exc),
+                        "message": "Bifröst probe could not complete.",
                     },
                 }
             )
