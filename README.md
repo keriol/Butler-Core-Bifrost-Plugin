@@ -53,6 +53,18 @@ Install the HTTP adapter dependencies with:
 python -m pip install -e ".[http]"
 ```
 
+A small executable probe exercises the real transport against an
+Asgard-compatible endpoint:
+
+```bash
+bifrost-probe \
+  --endpoint http://localhost:5055/asgard/v1/request \
+  --token "$ALFRED_ASGARD_TOKEN" \
+  --message "hello"
+```
+
+The probe emits compact JSON and never prints the supplied transport token.
+
 ## Multi-user session identity
 
 A client may attach safe speaker identity metadata to a request:
