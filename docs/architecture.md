@@ -1,54 +1,103 @@
 # Architecture
 
-Bifröst is the replaceable communication bridge between client-side Butler
-interfaces and runtime-side Butler boundaries.
+Bifröst is the external/client bridge of the Butler ecosystem.
 
-## Topology
+## Canonical topology
 
 ```text
-Client / Interphone
-       |
-    Midgard
-       |
+external client
+      |
     Bifröst
-       |
-    Asgard
-       |
- active Butler
+      |
+    Midgard
+      |
+cross-Butler routing
+      |
+Butler-owned Asgard
+      |
+concrete Butler
 ```
+
+Bifröst does not address Alfred, Wilfred or another Butler directly.
 
 ## Ownership
 
-Bifröst owns protocol versioning, correlation, transport/session concerns,
-safe handshake messages, discovery conventions and transport-level errors.
+Bifröst owns:
 
-Bifröst does not own domain behavior, planning, tool execution policy,
-provider semantics, notification significance or household configuration.
+- external/client protocol versioning;
+- request correlation at the client boundary;
+- transport/session concerns;
+- safe handshake messages;
+- discovery conventions;
+- transport-level errors;
+- transport of target Butler metadata;
+- propagation of Butler-originated response identity;
+- propagation of synchronous neutral client-notification descriptors.
+
+Bifröst does not own:
+
+- cross-Butler target resolution;
+- Butler identity;
+- Asgard;
+- domain behavior;
+- planning;
+- tool execution policy;
+- provider semantics;
+- notification significance;
+- household configuration.
+
+## Butler identity
+
+The client may request:
+
+```text
+target_butler_name
+```
+
+Bifröst transports that metadata to Midgard.
+
+Midgard owns cross-Butler routing by asking Butler-owned Asgard entities which Butler identity they represent.
+
+A successful response carries:
+
+```text
+source_butler_name
+```
+
+That identity originates from the selected Butler's Asgard. Bifröst only propagates it.
+
+## Synchronous unavailable notification
+
+When Midgard cannot reach the requested Butler because the Butler is missing, offline, unavailable, misconfigured or non-responsive, the structured error may include:
+
+```text
+kind = butler_unavailable
+presentation = system_neutral
+documentation_url = optional
+```
+
+Bifröst transports this descriptor to the client. It does not localize or reinterpret it.
+
+## Historical direct-Asgard transport
+
+The current `HttpTransport` is lower-layer proving evidence created before Midgard existed.
+
+```text
+Bifröst -> Asgard
+```
+
+is therefore historical/proving topology only, not the final client architecture.
+
+It must not be used as justification for new direct client-to-Asgard coupling.
 
 ## Discovery boundary
 
 DNS-SD / mDNS discovery advertises only endpoint compatibility metadata.
-Runtime identity is returned during handshake. Trust and authorization happen
-later through pairing/authentication.
 
 Discovery must never imply authorization.
 
-
 ## Multi-user identity boundary
 
-Bifröst can transport a client-asserted speaker/session identity so the Butler
-can preserve per-person conversational context.
+Bifröst may transport client-asserted speaker/session identity so the Butler can preserve conversational context.
 
-A speaker identity may be persistent, temporary and named, or temporary and
-anonymous. For example, a client may use `unknown-1` when a person declines
-to identify themselves.
-
-The bridge does not determine who is speaking. Speaker recognition, voice
-enrollment and temporary voice embeddings belong to the client-side identity
-layer. Bifröst carries only safe identity metadata.
-
-Temporary-session lifetime is also host policy. A client may choose a sliding
-30-minute idle timeout, but Bifröst does not implement or enforce that timer.
-
-Speaker identity is never authentication and must not authorize privileged or
-dangerous operations by itself.
+Speaker identity is not authentication and must not authorize privileged or dangerous operations by itself.
