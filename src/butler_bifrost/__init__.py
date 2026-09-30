@@ -22,4 +22,12 @@ __all__ = [
     "TextRequest",
     "TextResponse",
     "discovery_txt_record",
+    "HttpTransport",
+    "HttpTransportConfig",
 ]
+
+try:
+    from .http_transport import HttpTransport, HttpTransportConfig
+except ModuleNotFoundError:
+    HttpTransport = None  # type: ignore[assignment]
+    HttpTransportConfig = None  # type: ignore[assignment]

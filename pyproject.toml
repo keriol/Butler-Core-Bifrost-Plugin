@@ -12,7 +12,11 @@ license = "Apache-2.0"
 dependencies = []
 
 [project.optional-dependencies]
+http = [
+    "httpx>=0.28,<1",
+]
 dev = [
+    "httpx>=0.28,<1",
     "build>=1.2",
     "pytest>=9,<10",
     "pytest-cov>=7,<8",
