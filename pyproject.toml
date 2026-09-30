@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "butler-core-bifrost-plugin"
+version = "0.0.1.dev0"
+description = "Replaceable client-to-Butler bridge for the Butler ecosystem"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=9,<10",
+    "pytest-cov>=7,<8",
+    "wheel>=0.45",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
