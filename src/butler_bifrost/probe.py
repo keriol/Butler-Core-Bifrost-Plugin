@@ -12,7 +12,10 @@ from .protocol import ErrorEnvelope, SpeakerIdentity, TextRequest
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="bifrost-probe",
-        description="Exercise the Bifröst HTTP transport against Asgard.",
+        description=(
+            "Exercise the historical lower-layer Bifröst HTTP proving "
+            "transport against an Asgard-compatible endpoint."
+        ),
     )
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--token")

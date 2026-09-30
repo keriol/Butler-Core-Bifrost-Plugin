@@ -24,7 +24,13 @@ class HttpTransportConfig:
 
 
 class HttpTransport:
-    """Concrete HTTP bridge to an Asgard-compatible endpoint."""
+    """Historical lower-layer HTTP proving transport.
+
+    This adapter targets an Asgard-compatible endpoint and predates the
+    canonical Bifröst -> Midgard routing boundary. It remains for proving and
+    compatibility evidence. New client integration must not treat direct
+    Bifröst -> Asgard routing as the target architecture.
+    """
 
     def __init__(
         self,
