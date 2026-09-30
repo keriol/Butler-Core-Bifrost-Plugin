@@ -40,9 +40,29 @@ The first development line establishes:
 - safe Butler identity responses;
 - text request/response envelopes;
 - stable error envelopes;
+- safe session speaker identity metadata;
 - a LAN discovery convention based on DNS-SD / mDNS.
 
 No network server or Android client is shipped yet.
+
+## Multi-user session identity
+
+A client may attach safe speaker identity metadata to a request:
+
+```text
+known user       -> speaker_id="marco", persistent=true
+temporary guest  -> speaker_id="guest-a73f", persistent=false
+anonymous guest  -> speaker_id="unknown-1", persistent=false
+```
+
+Optional presentation preferences such as display name, `call_me`, form of
+address and language may travel with that session identity.
+
+Speaker identity is **context, not authentication**. It must never bypass
+normal Butler permissions or confirmation policy.
+
+Biometric material stays outside Bifröst: raw audio, voiceprints and speaker
+embeddings are not part of the protocol.
 
 ## LAN discovery
 

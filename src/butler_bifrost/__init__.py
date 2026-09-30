@@ -6,6 +6,7 @@ from .protocol import (
     ButlerIdentity,
     ErrorEnvelope,
     Hello,
+    SpeakerIdentity,
     TextRequest,
     TextResponse,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "ButlerIdentity",
     "ErrorEnvelope",
     "Hello",
+    "SpeakerIdentity",
     "TextRequest",
     "TextResponse",
     "discovery_txt_record",
