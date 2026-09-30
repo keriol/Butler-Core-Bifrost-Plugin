@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 
 PROTOCOL_VERSION = 1
@@ -11,6 +12,37 @@ def _required(value: str, field_name: str) -> str:
     if not clean:
         raise ValueError(f"{field_name} must not be blank.")
     return clean
+
+
+def _optional(value: str | None) -> str | None:
+    if value is None:
+        return None
+    clean = str(value).strip()
+    return clean or None
+
+
+class ClientNotificationKind(str, Enum):
+    BUTLER_UNAVAILABLE = "butler_unavailable"
+
+
+class ClientNotificationPresentation(str, Enum):
+    SYSTEM_NEUTRAL = "system_neutral"
+
+
+@dataclass(frozen=True, slots=True)
+class ClientNotification:
+    kind: ClientNotificationKind
+    presentation: ClientNotificationPresentation = (
+        ClientNotificationPresentation.SYSTEM_NEUTRAL
+    )
+    documentation_url: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "documentation_url",
+            _optional(self.documentation_url),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,14 +94,11 @@ class SpeakerIdentity:
             "form_of_address",
             "language",
         ):
-            value = getattr(self, field_name)
-            if value is not None:
-                clean = str(value).strip()
-                object.__setattr__(
-                    self,
-                    field_name,
-                    clean or None,
-                )
+            object.__setattr__(
+                self,
+                field_name,
+                _optional(getattr(self, field_name)),
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,10 +106,16 @@ class TextRequest:
     request_id: str
     message: str
     speaker: SpeakerIdentity | None = None
+    target_butler_name: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "request_id", _required(self.request_id, "request_id"))
         object.__setattr__(self, "message", _required(self.message, "message"))
+        object.__setattr__(
+            self,
+            "target_butler_name",
+            _optional(self.target_butler_name),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,9 +123,15 @@ class TextResponse:
     request_id: str
     response: str
     ok: bool = True
+    source_butler_name: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "request_id", _required(self.request_id, "request_id"))
+        object.__setattr__(
+            self,
+            "source_butler_name",
+            _optional(self.source_butler_name),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,6 +139,7 @@ class ErrorEnvelope:
     request_id: str | None
     code: str
     message: str
+    notification: ClientNotification | None = None
 
     def __post_init__(self) -> None:
         if self.request_id is not None:
