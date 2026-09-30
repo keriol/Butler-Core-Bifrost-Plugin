@@ -43,7 +43,15 @@ The first development line establishes:
 - safe session speaker identity metadata;
 - a LAN discovery convention based on DNS-SD / mDNS.
 
-No network server or Android client is shipped yet.
+The first optional HTTP transport adapter can send text requests to an
+Asgard-compatible endpoint. No server implementation or Android client is
+shipped yet.
+
+Install the HTTP adapter dependencies with:
+
+```bash
+python -m pip install -e ".[http]"
+```
 
 ## Multi-user session identity
 
