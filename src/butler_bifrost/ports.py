@@ -5,6 +5,7 @@ from typing import Protocol
 from .protocol import (
     ButlerDirectoryEntry,
     ErrorEnvelope,
+    NodeManifest,
     TextRequest,
     TextResponse,
 )
@@ -21,4 +22,8 @@ class MidgardIngressPort(Protocol):
 
     async def list_butlers(self) -> tuple[ButlerDirectoryEntry, ...]:
         """Return the Butler directory projected by Midgard."""
+        ...
+
+    async def get_node_manifest(self) -> NodeManifest:
+        """Return the safe node manifest projected by Midgard."""
         ...

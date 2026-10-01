@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 from .ports import MidgardIngressPort
 from .protocol import (
+    BifrostNodeManifest,
     ButlerDirectoryEntry,
     ErrorEnvelope,
     TextRequest,
@@ -12,8 +15,16 @@ from .protocol import (
 class BifrostIngress:
     """External/client ingress that delegates Butler routing to Midgard."""
 
-    def __init__(self, midgard: MidgardIngressPort) -> None:
+    def __init__(
+        self,
+        midgard: MidgardIngressPort,
+        *,
+        bifrost_version: str | None = None,
+    ) -> None:
         self._midgard = midgard
+        self._bifrost_version = (
+            bifrost_version or _installed_bifrost_version()
+        )
 
     async def handle_text(
         self,
@@ -48,3 +59,29 @@ class BifrostIngress:
                 code="midgard_unavailable",
                 message="Bifröst could not reach the routing layer.",
             )
+
+
+
+    async def handle_manifest(
+        self,
+    ) -> BifrostNodeManifest | ErrorEnvelope:
+        try:
+            manifest = await self._midgard.get_node_manifest()
+        except Exception:
+            return ErrorEnvelope(
+                request_id=None,
+                code="midgard_unavailable",
+                message="Bifröst could not reach the routing layer.",
+            )
+
+        return BifrostNodeManifest(
+            bifrost_version=self._bifrost_version,
+            node=manifest,
+        )
+
+
+def _installed_bifrost_version() -> str:
+    try:
+        return version("butler-core-bifrost-plugin")
+    except PackageNotFoundError:
+        return "0.0.1.dev0"

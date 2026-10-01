@@ -4,7 +4,15 @@ import pytest
 
 from butler_bifrost import (
     BifrostIngress,
+    ButlerDescriptor,
     ButlerDirectoryEntry,
+    CallableDescriptor,
+    CoreStackDescriptor,
+    DependencyDescriptor,
+    EntityDescriptor,
+    NodeManifest,
+    PluginDescriptor,
+    ReadinessDescriptor,
     ClientNotification,
     ClientNotificationKind,
     ErrorEnvelope,
@@ -21,6 +29,49 @@ class FakeMidgard:
     async def route_text(self, request):
         self.requests.append(request)
         return self.result
+
+    async def get_node_manifest(self):
+        return NodeManifest(
+            core=CoreStackDescriptor(
+                version="1.2.3",
+                plugins=(
+                    PluginDescriptor(
+                        name="routing-plugin",
+                        version="0.4.0",
+                        available=True,
+                    ),
+                ),
+            ),
+            butlers=(
+                ButlerDescriptor(
+                    canonical_name="Butler-A",
+                    aliases=("A",),
+                    description="Example Butler",
+                    version="2.0.0",
+                    available=True,
+                    asgard_version="0.1.0",
+                    entities=(
+                        EntityDescriptor(
+                            name="Example Entity",
+                            methods=(
+                                CallableDescriptor(
+                                    name="inspect",
+                                    readiness=ReadinessDescriptor(
+                                        state="usable",
+                                    ),
+                                    dependencies=(
+                                        DependencyDescriptor(
+                                            name="shared-provider",
+                                            version="3.0.0",
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
 
     async def list_butlers(self):
         return (
@@ -202,3 +253,33 @@ async def test_http_adapter_serializes_read_only_butler_directory():
             },
         ],
     }
+
+
+
+@pytest.mark.asyncio
+async def test_http_adapter_serializes_composed_node_manifest():
+    adapter = HttpIngressAdapter(
+        BifrostIngress(
+            FakeMidgard(None),
+            bifrost_version="0.9.0",
+        )
+    )
+
+    result = await adapter.handle_manifest()
+
+    assert result.status_code == 200
+    assert result.body["protocol_version"] == 1
+    assert result.body["bifrost"] == {"version": "0.9.0"}
+    assert result.body["core"]["version"] == "1.2.3"
+    assert result.body["core"]["plugins"][0]["name"] == "routing-plugin"
+
+    butler = result.body["butlers"][0]
+    assert butler["canonical_name"] == "Butler-A"
+    assert butler["asgard"] == {"version": "0.1.0"}
+    assert butler["entities"][0]["methods"][0]["name"] == "inspect"
+    assert butler["entities"][0]["methods"][0]["dependencies"] == [
+        {
+            "name": "shared-provider",
+            "version": "3.0.0",
+        }
+    ]
