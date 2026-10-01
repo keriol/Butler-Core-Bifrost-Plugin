@@ -5,6 +5,7 @@ from typing import Any, Mapping
 
 from .ingress import BifrostIngress
 from .protocol import (
+    BifrostNodeManifest,
     ButlerDirectoryEntry,
     ErrorEnvelope,
     SpeakerIdentity,
@@ -24,6 +25,31 @@ class HttpIngressAdapter:
 
     def __init__(self, ingress: BifrostIngress) -> None:
         self._ingress = ingress
+
+
+    async def handle_manifest(self) -> HttpIngressResult:
+        result = await self._ingress.handle_manifest()
+        if isinstance(result, ErrorEnvelope):
+            return self._serialize_error(
+                result,
+                status_code=self._status_for_error(result.code),
+            )
+
+        return HttpIngressResult(
+            status_code=200,
+            body={
+                "ok": True,
+                "protocol_version": result.protocol_version,
+                "bifrost": {
+                    "version": result.bifrost_version,
+                },
+                "core": _serialize_core(result.node.core),
+                "butlers": [
+                    _serialize_butler(butler)
+                    for butler in result.node.butlers
+                ],
+            },
+        )
 
     async def handle_butlers(self) -> HttpIngressResult:
         result = await self._ingress.handle_butlers()
@@ -218,3 +244,112 @@ class HttpIngressAdapter:
             status_code=status_code,
             body=body,
         )
+
+
+
+def _serialize_readiness(readiness):
+    if readiness is None:
+        return None
+    return {
+        key: value
+        for key, value in {
+            "state": readiness.state,
+            "reason_code": readiness.reason_code,
+        }.items()
+        if value is not None
+    }
+
+
+def _serialize_dependencies(dependencies):
+    return [
+        {
+            key: value
+            for key, value in {
+                "name": dependency.name,
+                "version": dependency.version,
+            }.items()
+            if value is not None
+        }
+        for dependency in dependencies
+    ]
+
+
+def _serialize_callable(item):
+    return {
+        key: value
+        for key, value in {
+            "name": item.name,
+            "description": item.description,
+            "available": item.available,
+            "readiness": _serialize_readiness(item.readiness),
+            "dependencies": _serialize_dependencies(item.dependencies),
+        }.items()
+        if value is not None
+    }
+
+
+def _serialize_entity(entity):
+    return {
+        key: value
+        for key, value in {
+            "name": entity.name,
+            "description": entity.description,
+            "available": entity.available,
+            "readiness": _serialize_readiness(entity.readiness),
+            "methods": [
+                _serialize_callable(item)
+                for item in entity.methods
+            ],
+            "dependencies": _serialize_dependencies(entity.dependencies),
+        }.items()
+        if value is not None
+    }
+
+
+def _serialize_plugin(plugin):
+    return {
+        key: value
+        for key, value in {
+            "name": plugin.name,
+            "version": plugin.version,
+            "description": plugin.description,
+            "available": plugin.available,
+            "readiness": _serialize_readiness(plugin.readiness),
+            "dependencies": _serialize_dependencies(plugin.dependencies),
+        }.items()
+        if value is not None
+    }
+
+
+def _serialize_core(core):
+    return {
+        "version": core.version,
+        "plugins": [
+            _serialize_plugin(plugin)
+            for plugin in core.plugins
+        ],
+    }
+
+
+def _serialize_butler(butler):
+    payload = {
+        "canonical_name": butler.canonical_name,
+        "aliases": list(butler.aliases),
+        "description": butler.description,
+        "available": butler.available,
+        "entities": [
+            _serialize_entity(entity)
+            for entity in butler.entities
+        ],
+        "plugins": [
+            _serialize_plugin(plugin)
+            for plugin in butler.plugins
+        ],
+    }
+    if butler.version is not None:
+        payload["version"] = butler.version
+    if butler.asgard_version is not None:
+        payload["asgard"] = {
+            "version": butler.asgard_version,
+        }
+    return payload
