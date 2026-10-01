@@ -2,7 +2,11 @@ import pytest
 
 from butler_bifrost import (
     BifrostIngress,
+    BifrostNodeManifest,
+    ButlerDescriptor,
     ButlerDirectoryEntry,
+    CoreStackDescriptor,
+    NodeManifest,
     ClientNotification,
     ClientNotificationKind,
     ErrorEnvelope,
@@ -19,6 +23,17 @@ class FakeMidgard:
     async def route_text(self, request):
         self.requests.append(request)
         return self.result
+
+    async def get_node_manifest(self):
+        return NodeManifest(
+            core=CoreStackDescriptor(version="1.2.3"),
+            butlers=(
+                ButlerDescriptor(
+                    canonical_name="Butler-A",
+                    available=True,
+                ),
+            ),
+        )
 
     async def list_butlers(self):
         return (
@@ -165,3 +180,18 @@ async def test_ingress_maps_butler_directory_failure_to_stable_error():
         code="midgard_unavailable",
         message="Bifröst could not reach the routing layer.",
     )
+
+
+
+@pytest.mark.asyncio
+async def test_ingress_wraps_midgard_manifest_with_bifrost_metadata():
+    result = await BifrostIngress(
+        FakeMidgard(None),
+        bifrost_version="0.9.0",
+    ).handle_manifest()
+
+    assert isinstance(result, BifrostNodeManifest)
+    assert result.protocol_version == 1
+    assert result.bifrost_version == "0.9.0"
+    assert result.node.core.version == "1.2.3"
+    assert result.node.butlers[0].canonical_name == "Butler-A"
