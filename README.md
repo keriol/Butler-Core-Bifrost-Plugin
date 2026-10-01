@@ -2,11 +2,33 @@
 
 **The replaceable external/client bridge for the Butler ecosystem.**
 
-Bifröst is the boundary external clients attach to. Android/Interphone and future clients should not know concrete Butler runtimes or Butler-owned entities such as Asgard.
+Bifröst is the boundary external clients attach to. Android/Interphone and
+future clients should not know concrete Butler runtimes or Butler-owned entities
+such as Asgard.
 
-The project is currently in private incubation and is being developed with a future public release in mind.
+The project is currently in private incubation and is being developed with a
+future public release in mind.
 
 ## Canonical role
+
+Bifröst hands external requests to Midgard. The request may stay on the
+Core-facing path or explicitly target a concrete Butler.
+
+Core-owned capability:
+
+```text
+Client / Interphone
+       |
+     Bifröst
+       |
+     Midgard
+       |
+   Butler Core
+       |
+ provider/plugin
+```
+
+Explicit Butler target:
 
 ```text
 Client / Interphone
@@ -22,27 +44,25 @@ Client / Interphone
  concrete Butler
 ```
 
-Midgard asks the available Butler-owned Asgard entities which Butler identity they represent and routes to the unique matching Butler universe.
-
-Bifröst transports the requested Butler identity but does not resolve it.
+Bifröst transports routing metadata but does not resolve the route.
 
 ## Identity flow
 
-Request-side:
+`target_butler_name` is optional.
 
-```text
-target_butler_name
-```
+When present, it is carried from the client into Midgard unchanged and means
+the request explicitly targets a concrete Butler.
 
-is carried from the client into Midgard.
+When absent, the host may route the request through Midgard's Core-facing path.
 
-Response-side:
+For concrete Butler responses:
 
 ```text
 source_butler_name
 ```
 
 comes from the responding Butler's Asgard and is propagated back to the client.
+Core-path responses may leave it unset.
 
 Bifröst must not fabricate, rewrite or silently substitute either identity.
 
@@ -57,6 +77,7 @@ The current development line establishes:
 - text request/response envelopes;
 - stable error envelopes;
 - safe speaker/session metadata;
+- optional concrete-Butler target metadata;
 - LAN discovery conventions based on DNS-SD / mDNS.
 
 ## Butler unavailable
@@ -75,9 +96,11 @@ This is request/response UX, not proactive Butler communication.
 
 ## Historical HTTP proving adapter
 
-The existing `HttpTransport` and `bifrost-probe` were created to prove the lower-layer Bifröst -> Asgard path before Midgard existed.
+The existing `HttpTransport` and `bifrost-probe` were created to prove the
+lower-layer Bifröst -> Asgard path before Midgard existed.
 
-They remain useful as historical/lower-layer proving tools, but **direct Bifröst -> Asgard HTTP routing is not the canonical final architecture**.
+They remain useful as historical/lower-layer proving tools, but **direct
+Bifröst -> Asgard HTTP routing is not the canonical final architecture**.
 
 New client integration work must target the Bifröst -> Midgard path.
 
@@ -85,7 +108,8 @@ New client integration work must target the Bifröst -> Midgard path.
 
 A client may attach safe speaker identity metadata to a request.
 
-Speaker identity is contextual information, not authentication. Raw audio, voiceprints and speaker embeddings are not part of the Bifröst protocol.
+Speaker identity is contextual information, not authentication. Raw audio,
+voiceprints and speaker embeddings are not part of the Bifröst protocol.
 
 ## LAN discovery
 
@@ -95,7 +119,8 @@ Bifröst defines the DNS-SD service type:
 _butler-bifrost._tcp
 ```
 
-Discovery exists only to locate compatible Bifröst endpoints. It is not authorization.
+Discovery exists only to locate compatible Bifröst endpoints. It is not
+authorization.
 
 ```text
 DISCOVER -> IDENTIFY -> PAIR/AUTH -> TRUSTED SESSION
