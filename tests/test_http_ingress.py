@@ -56,6 +56,32 @@ async def test_http_adapter_parses_and_serializes_success():
 
 
 @pytest.mark.asyncio
+async def test_http_adapter_allows_targetless_core_request():
+    midgard = FakeMidgard(
+        TextResponse(
+            request_id="req-core",
+            response="Done.",
+            source_butler_name=None,
+        )
+    )
+    adapter = HttpIngressAdapter(BifrostIngress(midgard))
+
+    result = await adapter.handle_json({
+        "request_id": "req-core",
+        "message": "run provider capability",
+    })
+
+    assert result.status_code == 200
+    assert result.body == {
+        "ok": True,
+        "request_id": "req-core",
+        "source_butler_name": None,
+        "response": "Done.",
+    }
+    assert midgard.requests[0].target_butler_name is None
+
+
+@pytest.mark.asyncio
 async def test_http_adapter_preserves_neutral_notification():
     notification = ClientNotification(
         kind=ClientNotificationKind.BUTLER_UNAVAILABLE,
@@ -92,7 +118,6 @@ async def test_http_adapter_preserves_neutral_notification():
         ([], None),
         ({"message": "hello", "target_butler_name": "Butler-A"}, None),
         ({"request_id": "req-3", "target_butler_name": "Butler-A"}, "req-3"),
-        ({"request_id": "req-4", "message": "hello"}, "req-4"),
         ({
             "request_id": "req-5",
             "message": "hello",

@@ -76,12 +76,6 @@ class HttpIngressAdapter:
                 code="invalid_request",
                 message="message must not be blank.",
             )
-        if target is None:
-            return ErrorEnvelope(
-                request_id=request_id,
-                code="invalid_request",
-                message="target_butler_name must not be blank.",
-            )
 
         speaker_payload = payload.get("speaker")
         speaker = None
