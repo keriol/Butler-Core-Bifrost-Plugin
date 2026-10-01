@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from .ports import MidgardIngressPort
-from .protocol import ErrorEnvelope, TextRequest, TextResponse
+from .protocol import (
+    ButlerDirectoryEntry,
+    ErrorEnvelope,
+    TextRequest,
+    TextResponse,
+)
 
 
 class BifrostIngress:
@@ -31,3 +36,15 @@ class BifrostIngress:
             )
 
         return result
+
+    async def handle_butlers(
+        self,
+    ) -> tuple[ButlerDirectoryEntry, ...] | ErrorEnvelope:
+        try:
+            return await self._midgard.list_butlers()
+        except Exception:
+            return ErrorEnvelope(
+                request_id=None,
+                code="midgard_unavailable",
+                message="Bifröst could not reach the routing layer.",
+            )
