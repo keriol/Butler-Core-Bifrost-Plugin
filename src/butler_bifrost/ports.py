@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from .protocol import ErrorEnvelope, TextRequest, TextResponse
+from .protocol import (
+    ButlerDirectoryEntry,
+    ErrorEnvelope,
+    TextRequest,
+    TextResponse,
+)
 
 
 class MidgardIngressPort(Protocol):
@@ -12,4 +17,8 @@ class MidgardIngressPort(Protocol):
         self,
         request: TextRequest,
     ) -> TextResponse | ErrorEnvelope:
+        ...
+
+    async def list_butlers(self) -> tuple[ButlerDirectoryEntry, ...]:
+        """Return the Butler directory projected by Midgard."""
         ...
