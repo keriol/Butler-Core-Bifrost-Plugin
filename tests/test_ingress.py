@@ -2,6 +2,7 @@ import pytest
 
 from butler_bifrost import (
     BifrostIngress,
+    ButlerDirectoryEntry,
     ClientNotification,
     ClientNotificationKind,
     ErrorEnvelope,
@@ -18,6 +19,15 @@ class FakeMidgard:
     async def route_text(self, request):
         self.requests.append(request)
         return self.result
+
+    async def list_butlers(self):
+        return (
+            ButlerDirectoryEntry(
+                canonical_name="Butler-A",
+                aliases=("A",),
+                available=True,
+            ),
+        )
 
 
 @pytest.mark.asyncio
@@ -124,3 +134,34 @@ async def test_ingress_maps_midgard_exception_to_stable_error():
         message="Bifröst could not reach the routing layer.",
     )
     assert "private detail" not in result.message
+
+
+@pytest.mark.asyncio
+async def test_ingress_passes_through_midgard_butler_directory():
+    result = await BifrostIngress(FakeMidgard(None)).handle_butlers()
+
+    assert result == (
+        ButlerDirectoryEntry(
+            canonical_name="Butler-A",
+            aliases=("A",),
+            available=True,
+        ),
+    )
+
+
+@pytest.mark.asyncio
+async def test_ingress_maps_butler_directory_failure_to_stable_error():
+    class BrokenDirectoryMidgard:
+        async def route_text(self, request):
+            raise AssertionError("not used")
+
+        async def list_butlers(self):
+            raise RuntimeError("private detail")
+
+    result = await BifrostIngress(BrokenDirectoryMidgard()).handle_butlers()
+
+    assert result == ErrorEnvelope(
+        request_id=None,
+        code="midgard_unavailable",
+        message="Bifröst could not reach the routing layer.",
+    )

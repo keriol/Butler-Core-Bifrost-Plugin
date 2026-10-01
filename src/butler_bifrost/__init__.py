@@ -6,6 +6,7 @@ from .ingress import BifrostIngress
 from .ports import MidgardIngressPort
 from .protocol import (
     PROTOCOL_VERSION,
+    ButlerDirectoryEntry,
     ButlerIdentity,
     ClientNotification,
     ClientNotificationKind,
@@ -22,6 +23,7 @@ __all__ = [
     "DNS_SD_FQDN",
     "DNS_SD_SERVICE_TYPE",
     "BifrostIngress",
+    "ButlerDirectoryEntry",
     "ButlerIdentity",
     "ClientNotification",
     "ClientNotificationKind",

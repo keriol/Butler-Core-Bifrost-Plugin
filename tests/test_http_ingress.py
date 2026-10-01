@@ -4,6 +4,7 @@ import pytest
 
 from butler_bifrost import (
     BifrostIngress,
+    ButlerDirectoryEntry,
     ClientNotification,
     ClientNotificationKind,
     ErrorEnvelope,
@@ -20,6 +21,20 @@ class FakeMidgard:
     async def route_text(self, request):
         self.requests.append(request)
         return self.result
+
+    async def list_butlers(self):
+        return (
+            ButlerDirectoryEntry(
+                canonical_name="Butler-A",
+                aliases=("A", "Alpha"),
+                available=True,
+            ),
+            ButlerDirectoryEntry(
+                canonical_name="Butler-B",
+                aliases=(),
+                available=False,
+            ),
+        )
 
 
 @pytest.mark.asyncio
@@ -163,3 +178,27 @@ async def test_http_adapter_maps_unavailable_to_503():
     })
 
     assert result.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_http_adapter_serializes_read_only_butler_directory():
+    adapter = HttpIngressAdapter(BifrostIngress(FakeMidgard(None)))
+
+    result = await adapter.handle_butlers()
+
+    assert result.status_code == 200
+    assert result.body == {
+        "ok": True,
+        "butlers": [
+            {
+                "canonical_name": "Butler-A",
+                "aliases": ["A", "Alpha"],
+                "available": True,
+            },
+            {
+                "canonical_name": "Butler-B",
+                "aliases": [],
+                "available": False,
+            },
+        ],
+    }

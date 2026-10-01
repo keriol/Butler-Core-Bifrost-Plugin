@@ -102,6 +102,29 @@ class SpeakerIdentity:
 
 
 @dataclass(frozen=True, slots=True)
+class ButlerDirectoryEntry:
+    canonical_name: str
+    aliases: tuple[str, ...] = ()
+    available: bool = True
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "canonical_name",
+            _required(self.canonical_name, "canonical_name"),
+        )
+        object.__setattr__(
+            self,
+            "aliases",
+            tuple(
+                clean
+                for alias in self.aliases
+                if (clean := _optional(alias)) is not None
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class TextRequest:
     request_id: str
     message: str
