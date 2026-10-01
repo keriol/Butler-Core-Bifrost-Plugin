@@ -5,6 +5,7 @@ from typing import Any, Mapping
 
 from .ingress import BifrostIngress
 from .protocol import (
+    ButlerDirectoryEntry,
     ErrorEnvelope,
     SpeakerIdentity,
     TextRequest,
@@ -23,6 +24,29 @@ class HttpIngressAdapter:
 
     def __init__(self, ingress: BifrostIngress) -> None:
         self._ingress = ingress
+
+    async def handle_butlers(self) -> HttpIngressResult:
+        result = await self._ingress.handle_butlers()
+        if isinstance(result, ErrorEnvelope):
+            return self._serialize_error(
+                result,
+                status_code=self._status_for_error(result.code),
+            )
+
+        return HttpIngressResult(
+            status_code=200,
+            body={
+                "ok": True,
+                "butlers": [
+                    {
+                        "canonical_name": entry.canonical_name,
+                        "aliases": list(entry.aliases),
+                        "available": entry.available,
+                    }
+                    for entry in result
+                ],
+            },
+        )
 
     async def handle_json(
         self,
