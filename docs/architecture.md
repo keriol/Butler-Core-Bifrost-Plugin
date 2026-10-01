@@ -4,6 +4,25 @@ Bifröst is the external/client bridge of the Butler ecosystem.
 
 ## Canonical topology
 
+Bifröst transports client requests into Midgard. Midgard may then use either
+its Core-facing channel or cross-Butler routing depending on the request.
+
+Core-owned capability:
+
+```text
+external client
+      |
+    Bifröst
+      |
+    Midgard
+      |
+ Butler Core
+      |
+provider/plugin capability
+```
+
+Explicit Butler target:
+
 ```text
 external client
       |
@@ -18,7 +37,8 @@ Butler-owned Asgard
 concrete Butler
 ```
 
-Bifröst does not address Alfred, Wilfred or another Butler directly.
+Bifröst does not address Alfred, Wilfred or another Butler directly, and it
+does not decide whether a request belongs to Core or a concrete Butler.
 
 ## HTTP ingress ownership
 
@@ -34,16 +54,22 @@ BifrostIngress
 Midgard-facing port
 ```
 
-The concrete Butler host owns web-framework mounting, network binding and authentication policy. The reusable Bifröst package therefore does not depend on FastAPI, Flask or Starlette.
+The concrete host owns web-framework mounting, network binding and
+authentication policy. The reusable Bifröst package therefore does not depend
+on FastAPI, Flask or Starlette.
 
 The adapter validates and serializes:
 
 - request correlation;
-- target Butler name;
+- optional target Butler name;
 - safe speaker metadata;
-- source Butler identity;
+- source Butler identity when a concrete Butler answers;
 - structured errors;
 - neutral client-notification descriptors.
+
+A client omits `target_butler_name` for requests intended for the Core-facing
+path. When a target name is supplied, Bifröst preserves it unchanged for
+Midgard.
 
 ## Ownership
 
@@ -55,12 +81,13 @@ Bifröst owns:
 - safe handshake messages;
 - discovery conventions;
 - transport-level errors;
-- transport of target Butler metadata;
+- transport of optional target Butler metadata;
 - propagation of Butler-originated response identity;
 - propagation of synchronous neutral client-notification descriptors.
 
 Bifröst does not own:
 
+- Core-vs-Butler routing policy;
 - cross-Butler target resolution;
 - Butler identity;
 - Asgard;
@@ -73,7 +100,8 @@ Bifröst does not own:
 
 ## Historical direct-Asgard transport
 
-The current `HttpTransport` is lower-layer proving evidence created before Midgard existed.
+The current `HttpTransport` is lower-layer proving evidence created before
+Midgard existed.
 
 ```text
 Bifröst -> Asgard
