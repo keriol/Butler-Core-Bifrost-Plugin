@@ -169,3 +169,111 @@ class ErrorEnvelope:
             object.__setattr__(self, "request_id", _required(self.request_id, "request_id"))
         object.__setattr__(self, "code", _required(self.code, "code"))
         object.__setattr__(self, "message", _required(self.message, "message"))
+
+
+
+@dataclass(frozen=True, slots=True)
+class DependencyDescriptor:
+    name: str
+    version: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", _required(self.name, "name"))
+        object.__setattr__(self, "version", _optional(self.version))
+
+
+@dataclass(frozen=True, slots=True)
+class ReadinessDescriptor:
+    state: str
+    reason_code: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "state", _required(self.state, "state"))
+        object.__setattr__(self, "reason_code", _optional(self.reason_code))
+
+
+@dataclass(frozen=True, slots=True)
+class CallableDescriptor:
+    name: str
+    description: str = ""
+    available: bool = True
+    readiness: ReadinessDescriptor | None = None
+    dependencies: tuple[DependencyDescriptor, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class EntityDescriptor:
+    name: str
+    description: str = ""
+    available: bool = True
+    readiness: ReadinessDescriptor | None = None
+    methods: tuple[CallableDescriptor, ...] = ()
+    dependencies: tuple[DependencyDescriptor, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class PluginDescriptor:
+    name: str
+    version: str
+    description: str = ""
+    available: bool = True
+    readiness: ReadinessDescriptor | None = None
+    dependencies: tuple[DependencyDescriptor, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", _required(self.name, "name"))
+        object.__setattr__(self, "version", _required(self.version, "version"))
+
+
+@dataclass(frozen=True, slots=True)
+class ButlerDescriptor:
+    canonical_name: str
+    aliases: tuple[str, ...] = ()
+    description: str = ""
+    version: str | None = None
+    available: bool = True
+    asgard_version: str | None = None
+    entities: tuple[EntityDescriptor, ...] = ()
+    plugins: tuple[PluginDescriptor, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "canonical_name",
+            _required(self.canonical_name, "canonical_name"),
+        )
+        object.__setattr__(self, "version", _optional(self.version))
+        object.__setattr__(
+            self,
+            "asgard_version",
+            _optional(self.asgard_version),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class CoreStackDescriptor:
+    version: str
+    plugins: tuple[PluginDescriptor, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "version", _required(self.version, "version"))
+
+
+@dataclass(frozen=True, slots=True)
+class NodeManifest:
+    core: CoreStackDescriptor
+    butlers: tuple[ButlerDescriptor, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class BifrostNodeManifest:
+    bifrost_version: str
+    node: NodeManifest
+    protocol_version: int = PROTOCOL_VERSION
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "bifrost_version",
+            _required(self.bifrost_version, "bifrost_version"),
+        )
