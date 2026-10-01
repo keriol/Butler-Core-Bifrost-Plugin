@@ -2,6 +2,7 @@ import pytest
 
 from butler_bifrost import (
     PROTOCOL_VERSION,
+    ButlerDirectoryEntry,
     ButlerIdentity,
     ClientNotification,
     ClientNotificationKind,
@@ -71,3 +72,15 @@ def test_error_envelope_allows_neutral_client_notification():
     assert error.request_id is None
     assert error.notification is not None
     assert error.notification.documentation_url == "https://docs.example.test/doctor"
+
+
+def test_butler_directory_entry_normalizes_safe_public_fields():
+    entry = ButlerDirectoryEntry(
+        canonical_name="  Butler-A  ",
+        aliases=(" A ", "", "Alpha"),
+        available=False,
+    )
+
+    assert entry.canonical_name == "Butler-A"
+    assert entry.aliases == ("A", "Alpha")
+    assert entry.available is False
