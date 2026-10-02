@@ -2,18 +2,9 @@
 
 **The replaceable external/client bridge for the Butler ecosystem.**
 
-Bifröst is the boundary external clients attach to. Android/Interphone and
-future clients should not know concrete Butler runtimes or Butler-owned entities
-such as Asgard.
-
-Bifröst 0.1.0 is the first Public Alpha minor in the Ignition network baseline.
-
-## Canonical role
-
-Bifröst hands external requests to Midgard. The request may stay on the
-Core-facing path or explicitly target a concrete Butler.
-
-Core-owned capability:
+Bifröst is the public boundary where external clients attach to a Butler
+network. It transports requests, correlation identity and safe routing metadata
+without owning Butler selection or concrete runtime behavior.
 
 ```text
 Client / Interphone
@@ -23,94 +14,68 @@ Client / Interphone
      Midgard
        |
    Butler Core
-       |
- provider/plugin
 ```
 
-Explicit Butler target:
+When a request explicitly targets a concrete Butler, Midgard may continue
+through that Butler's own Asgard ingress boundary.
 
-```text
-Client / Interphone
-       |
-     Bifröst
-       |
-     Midgard
-       |
- cross-Butler routing
-       |
- Butler-owned Asgard
-       |
- concrete Butler
-```
+## Current release
 
-Bifröst transports routing metadata but does not resolve the route.
+**Public Alpha: 0.1.0 — Ignition**
 
-## Identity flow
+Bifröst 0.1.0 is the first network-capable release validated in
+**IGNITION-001**, the coordinated Butler-to-Android baseline.
 
-`target_butler_name` is optional.
+## Responsibilities
 
-When present, it is carried from the client into Midgard unchanged and means
-the request explicitly targets a concrete Butler.
+Bifröst owns:
 
-When absent, the host may route the request through Midgard's Core-facing path.
-
-For concrete Butler responses:
-
-```text
-source_butler_name
-```
-
-comes from the responding Butler's Asgard and is propagated back to the client.
-Core-path responses may leave it unset.
-
-Bifröst must not fabricate, rewrite or silently substitute either identity.
-
-## Current protocol scope
-
-The current development line establishes:
-
-- protocol versioning;
+- external/client protocol envelopes;
 - request correlation;
-- client HELLO messages;
-- safe Butler identity responses;
-- text request/response envelopes;
-- stable error envelopes;
+- text request/response transport;
+- optional Butler target metadata;
+- source-Butler identity propagation;
 - safe speaker/session metadata;
-- optional concrete-Butler target metadata;
-- LAN discovery conventions based on DNS-SD / mDNS.
+- read-only Butler directory transport;
+- node-manifest transport;
+- LAN discovery conventions.
 
-## Butler unavailable
+Bifröst does **not** own:
 
-A synchronous routing failure may carry a neutral client-notification descriptor such as:
+- Butler routing policy;
+- concrete Butler behavior;
+- household configuration;
+- authorization policy;
+- Home Assistant semantics.
+
+## Canonical paths
+
+Core-facing request:
 
 ```text
-kind = butler_unavailable
-presentation = system_neutral
-documentation_url = optional
+Client
+  -> Bifröst
+  -> Midgard
+  -> Butler Core
+  -> provider/plugin
 ```
 
-Bifröst transports that descriptor. The client owns localized rendering.
+Explicit Butler request:
 
-This is request/response UX, not proactive Butler communication.
+```text
+Client
+  -> Bifröst
+  -> Midgard
+  -> Butler-owned Asgard
+  -> concrete Butler
+```
 
-## Historical HTTP proving adapter
+Bifröst carries `target_butler_name` but does not resolve it.
 
-The existing `HttpTransport` and `bifrost-probe` were created to prove the
-lower-layer Bifröst -> Asgard path before Midgard existed.
+Concrete Butler responses may return `source_butler_name`, sourced by the
+responding Butler boundary and propagated back to the client unchanged.
 
-They remain useful as historical/lower-layer proving tools, but **direct
-Bifröst -> Asgard HTTP routing is not the canonical final architecture**.
-
-New client integration work must target the Bifröst -> Midgard path.
-
-## Multi-user session identity
-
-A client may attach safe speaker identity metadata to a request.
-
-Speaker identity is contextual information, not authentication. Raw audio,
-voiceprints and speaker embeddings are not part of the Bifröst protocol.
-
-## LAN discovery
+## Discovery and trust
 
 Bifröst defines the DNS-SD service type:
 
@@ -118,16 +83,13 @@ Bifröst defines the DNS-SD service type:
 _butler-bifrost._tcp
 ```
 
-Discovery exists only to locate compatible Bifröst endpoints. It is not
-authorization.
+Discovery locates endpoints. It is **not** authentication.
 
 ```text
 DISCOVER -> IDENTIFY -> PAIR/AUTH -> TRUSTED SESSION
 ```
 
-Manual endpoint configuration remains a supported fallback.
-
-See [Architecture](docs/architecture.md) for the ownership boundary.
+Pairing/device credentials remain post-0.1.0 work.
 
 ## Development
 
@@ -136,21 +98,33 @@ Python 3.10 or newer is required.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 python -m pytest
 python -m build
 ```
 
-## Project status
+The package deliberately contains no concrete Butler or household dependency.
 
-Current Public Alpha: **0.1.0**.
+## Historical proving adapter
 
-Bifröst 0.1.0 is the first network-capable release validated as part of Ignition Phase 1.
+The repository still contains the earlier HTTP proving transport and
+`bifrost-probe`. They remain useful lower-layer diagnostic tools, but direct
+Bifröst -> Asgard routing is **not** the canonical final architecture.
+
+New integrations target Bifröst -> Midgard.
+
+## Public boundary
+
+Public tests explicitly guard against:
+
+- Alfred-specific imports;
+- Asgard ownership leaking into Bifröst;
+- household-specific entity identifiers;
+- biometric speaker material.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Active work is tracked in GitHub Issues.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Security
 
@@ -158,4 +132,4 @@ See [SECURITY.md](SECURITY.md).
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Apache License 2.0.
