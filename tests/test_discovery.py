@@ -9,3 +9,11 @@ def test_dns_sd_service_is_stable():
 def test_discovery_metadata_exposes_protocol_only():
     record = discovery_txt_record()
     assert record == {"protocol": "1"}
+
+
+def test_discovery_metadata_contains_no_pairing_or_authentication_secret():
+    record = discovery_txt_record()
+    serialized = repr(record).casefold()
+    assert "token" not in serialized
+    assert "credential" not in serialized
+    assert "secret" not in serialized

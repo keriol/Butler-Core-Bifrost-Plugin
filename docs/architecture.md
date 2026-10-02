@@ -108,3 +108,28 @@ Bifröst -> Asgard
 ```
 
 is historical/proving topology only, not the final client architecture.
+
+
+## Pairing and authentication boundary
+
+LAN discovery locates a compatible Bifröst node but never grants trust.
+Discovery TXT metadata remains credential-free.
+
+The reusable pairing boundary is:
+
+```text
+client
+  -> Bifröst pairing HTTP adapter
+  -> runtime-owned pairing/issuer port
+  -> pending / approved / rejected / revoked
+```
+
+When approval succeeds, only the credential issued for that pairing is returned
+to the client. Normal protected requests present that device credential to the
+runtime-owned `DeviceCredentialAuthenticatorPort` before entering the existing
+Bifröst request path.
+
+Bifröst defines the generic contracts and transport semantics. The host runtime
+owns whether pairing is allowed, how approval is performed, credential storage,
+rotation and revocation. No master/bootstrap credential is exposed through
+Bifröst discovery or pairing responses.

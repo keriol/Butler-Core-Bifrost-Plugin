@@ -78,7 +78,9 @@ The current development line establishes:
 - stable error envelopes;
 - safe speaker/session metadata;
 - optional concrete-Butler target metadata;
-- LAN discovery conventions based on DNS-SD / mDNS.
+- LAN discovery conventions based on DNS-SD / mDNS;
+- explicit client pairing/enrollment contracts;
+- runtime-owned device credential authentication and independent revocation.
 
 ## Butler unavailable
 
@@ -127,6 +129,27 @@ DISCOVER -> IDENTIFY -> PAIR/AUTH -> TRUSTED SESSION
 ```
 
 Manual endpoint configuration remains a supported fallback.
+
+## Pairing and device credentials
+
+Discovery never carries credentials. Pairing is an explicit bootstrap flow:
+
+```text
+client discovers Bifröst
+  -> pairing request
+  -> runtime-owned approval
+  -> device-specific credential
+  -> authenticated Bifröst requests
+```
+
+Bifröst owns the generic request/status wire contract and credential
+presentation. The host runtime owns approval policy, credential generation,
+persistence, rotation and revocation. A device credential can therefore be
+revoked independently without rotating credentials for unrelated clients.
+
+The reusable package deliberately does not mount a web framework or decide
+whether pairing is enabled. Hosts mount the framework-neutral pairing adapter
+and use the device-credential authenticator before protected Bifröst routes.
 
 See [Architecture](docs/architecture.md) for the ownership boundary.
 

@@ -3,7 +3,21 @@
 from .discovery import DNS_SD_FQDN, DNS_SD_SERVICE_TYPE, discovery_txt_record
 from .http_ingress import HttpIngressAdapter, HttpIngressResult
 from .ingress import BifrostIngress
-from .ports import MidgardIngressPort
+from .ports import (
+    DeviceCredentialAuthenticatorPort,
+    MidgardIngressPort,
+    PairingRuntimePort,
+)
+from .pairing import (
+    BifrostPairing,
+    DeviceAuthentication,
+    DeviceCredentialState,
+    PairingHttpAdapter,
+    PairingHttpResult,
+    PairingRequest,
+    PairingResult,
+    PairingState,
+)
 from .protocol import (
     PROTOCOL_VERSION,
     BifrostNodeManifest,
@@ -50,7 +64,17 @@ __all__ = [
     "Hello",
     "HttpIngressAdapter",
     "HttpIngressResult",
+    "DeviceCredentialAuthenticatorPort",
     "MidgardIngressPort",
+    "PairingRuntimePort",
+    "BifrostPairing",
+    "DeviceAuthentication",
+    "DeviceCredentialState",
+    "PairingHttpAdapter",
+    "PairingHttpResult",
+    "PairingRequest",
+    "PairingResult",
+    "PairingState",
     "SpeakerIdentity",
     "TextRequest",
     "TextResponse",
