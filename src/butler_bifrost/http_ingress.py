@@ -337,6 +337,7 @@ def _serialize_butler(butler):
         "aliases": list(butler.aliases),
         "description": butler.description,
         "available": butler.available,
+        "profile_picture_data_uri": butler.profile_picture_data_uri,
         "entities": [
             _serialize_entity(entity)
             for entity in butler.entities
@@ -345,6 +346,11 @@ def _serialize_butler(butler):
             _serialize_plugin(plugin)
             for plugin in butler.plugins
         ],
+    }
+    payload = {
+        key: value
+        for key, value in payload.items()
+        if value is not None
     }
     if butler.version is not None:
         payload["version"] = butler.version
