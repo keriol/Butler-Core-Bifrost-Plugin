@@ -6,8 +6,7 @@ Bifröst is the boundary external clients attach to. Android/Interphone and
 future clients should not know concrete Butler runtimes or Butler-owned entities
 such as Asgard.
 
-The project is currently in private incubation and is being developed with a
-future public release in mind.
+Bifröst 0.0.1 is the first Public Alpha checkpoint of the reusable client boundary.
 
 ## Canonical role
 
@@ -145,9 +144,11 @@ python -m build
 
 ## Project status
 
-Current development version: **0.0.1.dev0**.
+Current Public Alpha: **0.0.1**.
 
-Bifröst is pre-release and under active contract proving.
+The 0.0.1 line contains the live-proven HTTP ingress, request/response contracts,
+Butler directory and node-manifest surfaces used by Butler Interphone. Pairing,
+proactive delivery and structured interaction transport remain later work.
 
 ## Contributing
 
