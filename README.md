@@ -6,8 +6,7 @@ Bifröst is the boundary external clients attach to. Android/Interphone and
 future clients should not know concrete Butler runtimes or Butler-owned entities
 such as Asgard.
 
-The project is currently in private incubation and is being developed with a
-future public release in mind.
+Bifröst 0.1.0 is the first Public Alpha minor in the Ignition network baseline.
 
 ## Canonical role
 
@@ -145,9 +144,9 @@ python -m build
 
 ## Project status
 
-Current development version: **0.0.1.dev0**.
+Current Public Alpha: **0.1.0**.
 
-Bifröst is pre-release and under active contract proving.
+Bifröst 0.1.0 is the first network-capable release validated as part of Ignition Phase 1.
 
 ## Contributing
 
