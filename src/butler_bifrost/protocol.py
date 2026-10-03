@@ -233,6 +233,7 @@ class ButlerDescriptor:
     version: str | None = None
     available: bool = True
     asgard_version: str | None = None
+    profile_picture_data_uri: str | None = None
     entities: tuple[EntityDescriptor, ...] = ()
     plugins: tuple[PluginDescriptor, ...] = ()
 
@@ -247,6 +248,11 @@ class ButlerDescriptor:
             self,
             "asgard_version",
             _optional(self.asgard_version),
+        )
+        object.__setattr__(
+            self,
+            "profile_picture_data_uri",
+            _optional(self.profile_picture_data_uri),
         )
 
 

@@ -50,6 +50,7 @@ class FakeMidgard:
                     version="2.0.0",
                     available=True,
                     asgard_version="0.1.0",
+                    profile_picture_data_uri="data:image/png;base64,ZmFrZQ==",
                     entities=(
                         EntityDescriptor(
                             name="Example Entity",
@@ -276,6 +277,10 @@ async def test_http_adapter_serializes_composed_node_manifest():
     butler = result.body["butlers"][0]
     assert butler["canonical_name"] == "Butler-A"
     assert butler["asgard"] == {"version": "0.1.0"}
+    assert (
+        butler["profile_picture_data_uri"]
+        == "data:image/png;base64,ZmFrZQ=="
+    )
     assert butler["entities"][0]["methods"][0]["name"] == "inspect"
     assert butler["entities"][0]["methods"][0]["dependencies"] == [
         {
